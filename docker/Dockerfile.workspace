@@ -1,0 +1,33 @@
+# agent-lab workspace image
+# A minimal, reproducible environment for running agent benchmark tasks.
+# The harness mounts the provisioned workspace at /workspace and execs
+# tool calls (file reads, writes, git, terminal commands) inside this container.
+
+FROM python:3.11-slim
+
+# System tools an agent might legitimately invoke
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    grep \
+    ripgrep \
+    jq \
+    tree \
+    && rm -rf /var/lib/apt/lists/*
+
+# Node (for JS/TS workspaces)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Dedicated non-root user for workspace operations
+RUN useradd -m -s /bin/bash agent
+USER agent
+WORKDIR /workspace
+
+# Git identity (required for any git operations during bench)
+RUN git config --global user.email "agent-lab@bench.local" \
+    && git config --global user.name "Agent Lab"
+
+# The harness copies the workspace template here at container start.
+# No CMD — the harness uses `docker exec` to invoke tool calls.

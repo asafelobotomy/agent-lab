@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.venv/
+venv/
+
+# Run artifacts — saved locally, not committed
+results/*/tasks/
+results/*/workspace-snapshot/
+results/*/*.log
+
+# Docker build cache
+docker/.cache/
+
+# Temp provisioned workspaces
+.workspaces/
