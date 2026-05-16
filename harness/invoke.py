@@ -141,7 +141,6 @@ def run_task(
         message = choice.get("message", {})
         content = message.get("content") or ""
         tool_calls = _parse_tool_calls(choice)
-        stop_reason = choice.get("finish_reason", "stop")
 
         logger.llm_response(
             content=content or None,

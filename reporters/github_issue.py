@@ -186,7 +186,7 @@ def generate_issue(run_id: str, *, submit: bool, repo: str | None) -> int:
 
     issue_body = _ISSUE_TEMPLATE.format(
         agent=agent,
-        lab_repo="agent-lab",   # placeholder — update when repo is public
+        lab_repo=os.getenv("LAB_REPO", "your-org/agent-lab"),
         run_id=run_id,
         battery=battery,
         model=model,

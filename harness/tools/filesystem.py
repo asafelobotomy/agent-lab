@@ -5,7 +5,7 @@ are rejected to prevent the agent from touching the host system.
 """
 from __future__ import annotations
 
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from harness.tools import register
 from harness.provision import Workspace
 

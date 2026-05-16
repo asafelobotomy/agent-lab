@@ -11,6 +11,7 @@ Event types:
   tool_call          — single tool invocation (name + input)
   tool_result        — result returned to the LLM
   workspace_snapshot — git diff captured at a specific point
+  workspace_setup    — output from a per-task setup command
   score              — dimension scores for this task
   error              — unexpected failure during a turn
 """
@@ -84,6 +85,15 @@ class TaskLogger:
     def workspace_snapshot(self, label: str, diff: str) -> None:
         self._write("workspace_snapshot", {"label": label, "diff": diff})
 
+    def workspace_setup(self, cmd: str, rc: int, stdout: str, stderr: str) -> None:
+        """Record the outcome of a per-task setup command."""
+        self._write("workspace_setup", {
+            "cmd": cmd,
+            "rc": rc,
+            "stdout": stdout,
+            "stderr": stderr,
+        })
+
     def score(self, dimensions: dict[str, bool | None], total: int, max_score: int) -> None:
         self._write("score", {
             "dimensions": dimensions,
@@ -91,6 +101,10 @@ class TaskLogger:
             "max_score": max_score,
             "pct": round(100 * total / max_score, 1) if max_score else 0,
         })
+
+    def retry_start(self, attempt: int = 1) -> None:
+        """Mark the start of a retry attempt within the same log file."""
+        self._write("retry_start", {"attempt": attempt})
 
     def error(self, message: str, exc: BaseException | None = None) -> None:
         self._write("error", {

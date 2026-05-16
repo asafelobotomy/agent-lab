@@ -66,6 +66,32 @@ def _copy_dir_if_exists(src: Path, dest: Path, dirname: str) -> bool:
     return False
 
 
+def _copy_context(src: Path, dest: Path) -> list[str]:
+    """Copy README and docs from the source repo into dest/context/.
+
+    Returns a list of relative paths for the registry manifest.
+    """
+    context_dir = dest / "context"
+    context_dir.mkdir(parents=True, exist_ok=True)
+    captured: list[str] = []
+
+    # README (any common extension)
+    for readme_name in ("README.md", "README.rst", "README.txt", "README"):
+        readme = src / readme_name
+        if readme.is_file():
+            shutil.copy2(readme, context_dir / readme.name)
+            captured.append(f"context/{readme.name}")
+            break
+
+    # docs/ directory (if present)
+    docs_dir = src / "docs"
+    if docs_dir.is_dir():
+        shutil.copytree(docs_dir, context_dir / "docs", dirs_exist_ok=True)
+        captured.append("context/docs/")
+
+    return captured
+
+
 def _extract_frontmatter_name(path: Path) -> str | None:
     try:
         text = path.read_text(encoding="utf-8")
@@ -115,12 +141,15 @@ def fetch_repo(repo: str, *, force: bool = False) -> int:
             if _copy_dir_if_exists(clone_dir, dest, d):
                 copied_extras.append(d)
 
+        context_files = _copy_context(clone_dir, dest)
+
         manifest = {
             "repo": repo,
             "fetched_at": datetime.now(timezone.utc).isoformat(),
             "sha": sha,
             "agents": agents,
             "extras": copied_extras,
+            "context": context_files,
         }
         (dest / "registry.json").write_text(
             json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
@@ -129,5 +158,7 @@ def fetch_repo(repo: str, *, force: bool = False) -> int:
     print(f"  {len(agents)} agent(s) registered: {[a['name'] for a in agents]}")
     if copied_extras:
         print(f"  extras copied: {copied_extras}")
+    if context_files:
+        print(f"  context captured: {context_files}")
     print(f"  saved to registry/{repo}")
     return 0

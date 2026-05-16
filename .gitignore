@@ -10,6 +10,11 @@ results/*/tasks/
 results/*/workspace-snapshot/
 results/*/*.log
 
+# Coverage artifacts
+.coverage
+coverage.json
+htmlcov/
+
 # Docker build cache
 docker/.cache/
 
