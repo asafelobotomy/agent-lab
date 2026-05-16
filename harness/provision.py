@@ -26,6 +26,7 @@ from typing import Protocol
 
 BATTERIES_DIR = Path(__file__).resolve().parents[1] / "batteries"
 DOCKER_IMAGE = os.getenv("LAB_DOCKER_IMG", "agent-lab-workspace")
+DOCKER_CMD = os.getenv("LAB_DOCKER_CMD", "docker").split()  # e.g. "sudo docker"
 _WORKSPACE_MOUNT = "/workspace"
 
 
@@ -53,7 +54,7 @@ class DockerWorkspace:
 
     def exec(self, cmd: str) -> tuple[int, str, str]:
         r = subprocess.run(
-            ["docker", "exec", "--workdir", _WORKSPACE_MOUNT, self._id,
+            [*DOCKER_CMD, "exec", "--workdir", _WORKSPACE_MOUNT, self._id,
              "bash", "-c", cmd],
             capture_output=True, text=True, check=False,
         )
@@ -68,7 +69,7 @@ class DockerWorkspace:
         target.write_text(text, encoding="utf-8")
         # Sync to container
         subprocess.run(
-            ["docker", "cp", str(target),
+            [*DOCKER_CMD, "cp", str(target),
              f"{self._id}:{_WORKSPACE_MOUNT}/{relpath}"],
             capture_output=True, check=False,
         )
@@ -78,7 +79,7 @@ class DockerWorkspace:
         return out
 
     def destroy(self) -> None:
-        subprocess.run(["docker", "rm", "-f", self._id],
+        subprocess.run([*DOCKER_CMD, "rm", "-f", self._id],
                        capture_output=True, check=False)
         shutil.rmtree(self._host, ignore_errors=True)
 
@@ -179,7 +180,7 @@ def provision(
 
     # Start a long-running container and copy the workspace into it
     r = subprocess.run(
-        ["docker", "run", "-d", "--rm", "--name", f"agent-lab-{tmp_root.name}",
+        [*DOCKER_CMD, "run", "-d", "--rm", "--name", f"agent-lab-{tmp_root.name}",
          "--memory", "512m", "--cpus", "1",
          DOCKER_IMAGE, "sleep", "infinity"],
         capture_output=True, text=True, check=False,
@@ -192,11 +193,11 @@ def provision(
 
     # Copy workspace contents into container
     cp = subprocess.run(
-        ["docker", "cp", f"{host_copy}/.", f"{container_id}:{_WORKSPACE_MOUNT}"],
+        [*DOCKER_CMD, "cp", f"{host_copy}/.", f"{container_id}:{_WORKSPACE_MOUNT}"],
         capture_output=True, check=False,
     )
     if cp.returncode != 0:
-        subprocess.run(["docker", "rm", "-f", container_id], capture_output=True)
+        subprocess.run([*DOCKER_CMD, "rm", "-f", container_id], capture_output=True)
         shutil.rmtree(tmp_root, ignore_errors=True)
         raise RuntimeError(f"Docker cp failed: {cp.stderr.decode()}")
 

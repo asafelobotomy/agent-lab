@@ -2,6 +2,9 @@
 # A minimal, reproducible environment for running agent benchmark tasks.
 # The harness mounts the provisioned workspace at /workspace and execs
 # tool calls (file reads, writes, git, terminal commands) inside this container.
+#
+# Build:
+#   docker build -t agent-lab-workspace -f docker/Dockerfile.workspace docker/
 
 FROM python:3.11-slim
 

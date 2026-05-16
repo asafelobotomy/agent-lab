@@ -11,6 +11,8 @@ Environment:
   GITHUB_TOKEN    — PAT with repo:read and (optionally) issues:write scope
   LAB_LLM_MODEL   — override the LLM model used during bench runs
   LAB_DOCKER_IMG  — override the Docker workspace image (default: agent-lab-workspace)
+  LAB_DOCKER_CMD  — override the docker binary (default: docker; use "sudo docker" if
+                    the current user is not yet in the docker group)
 """
 from __future__ import annotations
 
