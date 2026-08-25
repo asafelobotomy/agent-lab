@@ -1,5 +1,7 @@
 # agent-lab
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U5R225QZH3)
+
 Live benchmarking for AI coding agents — provision isolated workspaces, run agents against scored task batteries, and generate structured reports.
 
 ```
